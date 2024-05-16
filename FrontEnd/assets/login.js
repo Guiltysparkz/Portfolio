@@ -1,10 +1,12 @@
 document.getElementById("login-form").addEventListener("submit", async function(event){
     event.preventDefault(); // Prevent default form behaviour
 
+// Get values from form
 const email = document.getElementById("email").value;
 const password = document.getElementById("password").value;
 
 try {
+    // Send forms value to api for verification
     const response = await fetch("http://localhost:5678/api/users/login", {
         method: "POST",
         headers: {
@@ -16,9 +18,14 @@ try {
         })
     });
     if (!response.ok) {
-        throw new Error(`Network error ${response.statusText}`);
+        if (response.status === 401) {
+            // Unauthorized error, wrong credentials
+            window.alert("Email ou mot de passe invalide.");
+        } else {
+            throw new Error(`Network error ${response.statusText}`);
+        }
     }
-    
+    // Collect answer from api (token) and on success send to index.html
     const data = await response.json();
     
     if (data.token) {
@@ -29,8 +36,8 @@ try {
     else {
         console.error("Token not received", data);
     }
-    }
-catch (error) {
+    } 
+    catch (error) {
         console.error("Fetch error", error);
     }
 });
