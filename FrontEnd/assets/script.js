@@ -45,6 +45,7 @@ async function fetching_categories() {
 }
 
 // Generate filter buttons
+// Generate reset filter button first
 function create_filtres(categories) {
     const filtres = document.getElementById("filtres");
     let filtre_reset = document.createElement("button");
@@ -53,7 +54,7 @@ function create_filtres(categories) {
     filtre_reset_text.textContent = "Tous";
     filtre_reset.appendChild(filtre_reset_text);
     filtres.appendChild(filtre_reset);
-
+// Generate each other button based on category
     for (let i = 0; i < categories.length; i++) {
         let filtre_button = document.createElement("button");
         filtre_button.id = categories[i].id;
