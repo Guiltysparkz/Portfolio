@@ -31,6 +31,8 @@ try {
     if (data.token) {
         localStorage.setItem("loginToken", data.token);
         console.log("Token received", data.token);
+        localStorage.setItem("userId", data.userId);
+        console.log("userId received", data.userId);
         window.location.href = "index.html";
     } 
     else {

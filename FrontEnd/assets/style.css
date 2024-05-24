@@ -379,14 +379,14 @@ nav li > a:visited {
 	height: 24px;
 }
 
-#remove_work {
+.remove_work {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	height: 17px;
 	width: 17px;
 	background-color: black;
-	z-index: 3;
+	z-index: 4;
 	position: relative;
 	bottom: 98%;
 	left: 72%;
