@@ -1,118 +1,100 @@
-var all_works = [];
-var categories = [];
-
 document.addEventListener('DOMContentLoaded', async () => {
-
     const myToken = localStorage.getItem("loginToken");
+    const isAdmin = myToken?.length > 0;
 
-    const isAdmin = myToken?.length > 0 ? true : false;
-
-    console.log("isAdmin ===>",isAdmin)
-    console.log("myToken ===>",myToken)
-
-    
-   //isAdmin = true;
-   if (isAdmin) {
-       await fetching_works(); // Wait for the data to be fetched
-       create_modale(); // Prepare modale to be called once data is fetched
-   }
-
-
-
+    if (isAdmin) {
+        await fetchWorks();
+        setupModalButton();
+    }
 });
 
-async function fetching_works() {
+function setupModalButton() {
+    const modalButton = document.getElementById('modal_button');
+    if (modalButton) {
+        modalButton.addEventListener('click', createModale);
+    } else {
+        console.error('Modal button not found.');
+    }
+}
+
+async function fetchWorks() {
     try {
-        let fetched_works = await fetch("http://localhost:5678/api/works");
-        if (!fetched_works.ok) {
-            throw new Error("Network error" + fetched_works.statusText);
+        const response = await fetch("http://localhost:5678/api/works");
+        if (!response.ok) {
+            throw new Error("Network error: " + response.statusText);
         }
-        all_works = await fetched_works.json();
-        console.log(all_works);
-        add_works(all_works);
-        const categories = extractCategories(all_works); // Store categories
-        create_filtres(categories); // Pass categories to create_filtres
-        create_modale(all_works);
+        allWorks = await response.json();
+        updateGalleries();
+        categories = extractCategories(allWorks);
+        createFilters(categories);
     } catch (error) {
         console.error('Fetch error:', error);
     }
 }
 
-
-function extractCategories(all_works) {
-    categories = [];
-    const categoryIds = new Set();
-
-    all_works.forEach(work => {
+function extractCategories(works) {
+    const categorySet = new Set();
+    return works.reduce((acc, work) => {
         const { id, name } = work.category;
-        if (!categoryIds.has(id)) {
-            categories.push({ id, name });
-            categoryIds.add(id);
+        if (!categorySet.has(id)) {
+            acc.push({ id, name });
+            categorySet.add(id);
         }
-});
-return categories; // Return categories
+        return acc;
+    }, []);
 }
 
-
-function add_works(works) {
+function addWorks(works) {
     const gallery = document.getElementById("gallery");
     if (!gallery) return;
 
+    gallery.innerHTML = ''; // Clear existing works
     works.forEach(work => {
         const figure = document.createElement("figure");
-        const image = document.createElement("img");
-        const figcaption = document.createElement("figcaption");
-
-        image.src = work.imageUrl;
-        image.alt = work.title;
-        image.id = work.id;
+        figure.innerHTML = `
+            <img src="${work.imageUrl}" alt="${work.title}" id="${work.id}">
+            <figcaption>${work.title}</figcaption>
+        `;
         figure.id = work.categoryId;
         figure.className = work.id;
-        figcaption.innerText = work.title;
-
-        figure.appendChild(image);
-        figure.appendChild(figcaption);
         gallery.appendChild(figure);
     });
 }
 
-// Generate filter buttons
-// Generate reset filter button first
-function create_filtres(categories) {
-    const filtres = document.getElementById("filtres");
-    let filtre_reset = document.createElement("button");
-    filtre_reset.id = "reset";
-    let filtre_reset_text = document.createElement("p");
-    filtre_reset_text.textContent = "Tous";
-    filtre_reset.appendChild(filtre_reset_text);
-    filtres.appendChild(filtre_reset);
-// Generate each other button based on category
+function createFilters(categories) {
+    const filters = document.getElementById("filtres");
+    if (!filters) return;
+    
+    filters.innerHTML = ''; // Clear existing filters
+    const resetButton = createButton("reset", "Tous");
+    filters.appendChild(resetButton);
+
     categories.forEach(category => {
-        let filtre_button = document.createElement("button");
-        filtre_button.id = category.id;
-        let filtre_button_text = document.createElement("p");
-        filtre_button_text.textContent = category.name;
-        filtre_button.appendChild(filtre_button_text);
-        filtres.appendChild(filtre_button);
+        const filterButton = createButton(category.id, category.name);
+        filters.appendChild(filterButton);
     });
-    add_filtre_listener();
+
+    addFilterListener();
 }
 
-// Add listeners to all filter buttons
-function add_filtre_listener() {
-    const filtres_buttons = document.querySelectorAll("#filtres button");
+function createButton(id, text) {
+    const button = document.createElement("button");
+    button.id = id;
+    button.innerHTML = `<p>${text}</p>`;
+    return button;
+}
 
-    filtres_buttons.forEach(button => {
-        button.addEventListener("click", function() {
-            // Remove the active class from all buttons
-            filtres_buttons.forEach(btn => btn.classList.remove("filtres-active"));
-            // Add the active class to the clicked button
-            this.classList.add("filtres-active");
-            // Filter the gallery items
+function addFilterListener() {
+    const filterButtons = document.querySelectorAll("#filtres button");
+
+    filterButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            filterButtons.forEach(btn => btn.classList.remove("filtres-active"));
+            button.classList.add("filtres-active");
+
             const gallery = document.querySelectorAll("#gallery figure");
-            const filterId = this.id;
-            // For each figure if button id is reset or same as figure id remove hide
-            // else hide
+            const filterId = button.id;
+
             gallery.forEach(figure => {
                 if (filterId === "reset" || figure.id === filterId) {
                     figure.classList.remove("figure-hide");
@@ -124,49 +106,36 @@ function add_filtre_listener() {
     });
 }
 
+function addWorksToModale() {
+    const modaleGallery = document.getElementById("modale_gallery");
+    if (!modaleGallery) return;
 
-function add_works_to_modale() {
-    const modale_gallery = document.getElementById("modale_gallery");
-    all_works.forEach((work, i) => {
+    modaleGallery.innerHTML = ''; // Clear existing works in modaleGallery
+
+    allWorks.forEach((work) => {
         const figure = document.createElement("figure");
-        const img = document.createElement("img");
-        const remove_work = document.createElement("div");
-        const remove_work_icon = document.createElement("img");
+        figure.innerHTML = `
+            <img src="${work.imageUrl}" id="${work.id}">
+            <div class="remove_work" id="${work.id}">
+                <img src="./assets/icons/trashbin.svg" id="${work.id}">
+            </div>
+        `;
+        modaleGallery.appendChild(figure);
 
-        img.src = work.imageUrl;
-        figure.id = work.categoryId;
-        figure.className = work.id;
-        remove_work.id = `remove_work_${i}`;
-        remove_work.className = "remove_work";
-        remove_work_icon.id = work.id;
-        remove_work_icon.src = "./assets/icons/trashbin.svg";
-
-        figure.appendChild(img);
-        figure.appendChild(remove_work);
-        remove_work.appendChild(remove_work_icon);
-        modale_gallery.appendChild(figure);
-
-        remove_work.addEventListener('click', async function (event) {
-            console.log('Remove work clicked:', event.target.id);
-            // Get id of the clicked remove_work
-            const remove_work_id = event.target.id;
-            console.log('Clicked element ID:', remove_work_id);
-
-            console.log('remove_work_id ==>',remove_work_id)
+        figure.querySelector('.remove_work').addEventListener('click', async (event) => {
+            const removeWorkId = event.currentTarget.id; // Use event.currentTarget.id for div id
             try {
-                const response = await fetch('http://localhost:5678/api/works/'+work.id, {
+                const response = await fetch(`http://localhost:5678/api/works/${removeWorkId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('loginToken')}`
                     }
                 });
-
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`Network error: ${response.statusText} - ${errorText}`);
                 }
-
-                fetching_works();
+                await fetchWorks();
             } catch (error) {
                 console.error('Upload error:', error);
                 alert(`Failed to remove work: ${error.message}`);
@@ -175,200 +144,156 @@ function add_works_to_modale() {
     });
 }
 
+function appendingOneWork() {
+    const modaleAddPhotoButton = document.getElementById('modale_addPhoto_button');
+    if (!modaleAddPhotoButton) return;
 
+    modaleAddPhotoButton.addEventListener('click', () => {
+        const modaleGallery = document.getElementById('modale_gallery');
+        if (modaleGallery) modaleGallery.style.display = "none";
 
-function appending_one_work() {
-    document.getElementById('modale_addPhoto_button').addEventListener('click', function() {
-        const modale_gallery = document.getElementById('modale_gallery');
-        if (modale_gallery) modale_gallery.style.display = "none";
-        const modale_addPhoto_button = document.getElementById('modale_addPhoto_button');
-        if (modale_addPhoto_button) modale_addPhoto_button.style.display = "none";
-        const modale_title = document.getElementById('modale_title');
-        if (modale_title) modale_title.innerText = 'Ajout photo';
+        modaleAddPhotoButton.style.display = "none";
 
-        const photo_form = document.createElement('form');
-        photo_form.id = 'photo_form';
-        photo_form.enctype = 'multipart/form-data';
-        photo_form.method = 'POST';
+        const modaleTitle = document.getElementById('modale_title');
+        if (modaleTitle) modaleTitle.innerText = 'Ajout photo';
 
-        const photo_preview = document.createElement('div');
-        photo_preview.id = 'photo_preview';
-        const photo_preview_img = document.createElement('img');
-        photo_preview_img.id = 'photo_preview_img';
-        photo_preview_img.src = './assets/icons/default-upload-img.svg';
+        const photoForm = createPhotoForm();
+        const modaleWrapper = document.getElementById('modale_wrapper');
+        if (modaleWrapper) modaleWrapper.appendChild(photoForm);
 
-        const photo_upload_input = document.createElement('input');
-        photo_upload_input.type = 'file';
-        photo_upload_input.id = 'photo_upload_input';
-        photo_upload_input.name = 'image';
-        photo_upload_input.accept = 'image/*';
+        photoForm.querySelector('#photo_upload_input').addEventListener('change', handleFileUpload);
+        photoForm.addEventListener('submit', handleSubmit);
 
-        const photo_upload_requirements = document.createElement('p');
-        photo_upload_requirements.id = 'photo_upload_requirements';
-        photo_upload_requirements.innerText = 'jpg, png: 4mo max';
-
-        const photo_form_work_title = document.createElement('label');
-        photo_form_work_title.id = 'photo_form_work_title';
-        photo_form_work_title.textContent = 'Titre';
-        const photo_form_work_title_input = document.createElement('input');
-        photo_form_work_title_input.name = 'title';
-        photo_form_work_title_input.type = 'text';
-        photo_form_work_title_input.id = 'photo_form_work_title_input';
-
-        const photo_form_category_list_title = document.createElement('label');
-        photo_form_category_list_title.id = 'photo_form_category_list_title';
-        photo_form_category_list_title.textContent = 'Catégorie';
-        const photo_form_category_list = document.createElement('select');
-        photo_form_category_list.id = 'photo_form_category';
-        photo_form_category_list.name = 'category';
-        categories.forEach(category => {
-            const photo_form_category = document.createElement('option');
-            photo_form_category.value = category.id;
-            photo_form_category.textContent = category.name;
-            photo_form_category_list.appendChild(photo_form_category);
-        });
-
-        const modale_confirm_addPhoto_button = document.createElement('button');
-        modale_confirm_addPhoto_button.id = 'modale_confirm_addPhoto_button';
-        modale_confirm_addPhoto_button.type = 'submit';
-        modale_confirm_addPhoto_button.innerText = 'Valider';
-
-        const modale_wrapper = document.getElementById('modale_wrapper');
-        modale_wrapper.appendChild(photo_form);
-
-        photo_form.appendChild(photo_preview);
-        photo_preview.appendChild(photo_preview_img);
-        photo_preview.appendChild(photo_upload_input);
-        photo_preview.appendChild(photo_upload_requirements);
-        photo_form.appendChild(photo_form_work_title);
-        photo_form.appendChild(photo_form_work_title_input);
-        photo_form.appendChild(photo_form_category_list_title);
-        photo_form.appendChild(photo_form_category_list);
-        photo_form.appendChild(modale_confirm_addPhoto_button);
-
-        photo_upload_input.addEventListener('change', () => {
-            const file = photo_upload_input.files[0];
-            if (file) {
-                const fileSize = file.size / (1024 * 1024); // Convert to MB
-                if (fileSize > 4) {
-                    alert('File size exceeds 4MB');
-                    photo_upload_input.value = ''; // Clear the input
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    photo_preview_img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        photo_form.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Prevent the default form submission
-            const formData = new FormData(photo_form);
-
-
-            console.log('My form ===>',formData)
-
-            // Append additional fields as required by the API
-            // formData.append('title', photo_form_work_title_input.value);
-            // formData.append('category', photo_form_category_list.value); // Ensure 'category' is used instead of 'categoryId'
-            // formData.append('image', photo_upload_input.files[0]); // Ensure 'image' is used instead of 'imageUrl'
-            console.log (formData);
-            let loginToken = localStorage.getItem('loginToken');
-            console.log (typeof loginToken);
-
-            console.log("FormData entries:");
-                formData.forEach((value, key) => {
-                    console.log(key, value);
-                });
-
-                console.log("the strange token ",localStorage.getItem('userId', 'loginToken'))
-            try {
-                const response = await fetch('http://localhost:5678/api/works', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('loginToken')}`
-                    }
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Network error: ${response.statusText} - ${errorText}`);
-                }
-
-                const result = await response.json();
-                console.log('Upload successful:', result);
-                alert('Photo uploaded successfully!');
-
-                photo_form.reset();
-                photo_preview_img.src = './assets/icons/default-upload-img.svg';
-                modale_gallery.style.display = "flex";
-                modale_addPhoto_button.style.display = "flex";
-                modale_title.innerText = 'Galerie photo';
-
-                all_works.push(result);
-                add_works([result]);
-            } catch (error) {
-                console.error('Upload error:', error);
-                alert(`Failed to upload photo: ${error.message}`);
-            }
-        });
-    });
-}
-function create_modale(all_works) {
-    document.getElementById("edit_button").addEventListener("click", function() {
-        if (document.getElementById("modale_wrapper")) return; // Prevent multiple modals
-        
-        console.log(all_works);
-
-        const modale_wrapper = document.createElement("div");
-        modale_wrapper.id = "modale_wrapper";
-        const modale_title = document.createElement("h2");
-        modale_title.id = "modale_title";
-        modale_title.innerText = "Galerie photo";
-        const modale_gallery = document.createElement("div");
-        modale_gallery.id = "modale_gallery";
-        const modale_addPhoto = document.createElement("div");
-        modale_addPhoto.id = "modale_addPhoto";
-        const modale_addPhoto_button = document.createElement("button");
-        modale_addPhoto_button.id = 'modale_addPhoto_button';
-        modale_addPhoto_button.textContent = "Ajoutez une photo";
-        const modale_close = document.createElement("div");
-        const modale_close_icon = document.createElement("img");
-        modale_close_icon.src = "./assets/icons/cross.svg";
-        modale_close.id = "modale_close";
-        modale_wrapper.appendChild(modale_title);
-        modale_wrapper.appendChild(modale_gallery);
-        modale_wrapper.appendChild(modale_addPhoto);
-        modale_addPhoto.appendChild(modale_addPhoto_button);
-        modale_wrapper.appendChild(modale_close);
-        modale_close.appendChild(modale_close_icon);
-        document.body.appendChild(modale_wrapper);
-
-        const overlay = document.createElement("div");
-        overlay.className = "overlay";
-        document.body.appendChild(overlay);
-        document.body.style.overflow = "hidden";
-        document.body.style.backgroundColor = "rgba(0, 0, 0, 0.3)";
-
-        modale_close.addEventListener("click", function() {
-            modale_wrapper.remove();
-            overlay.remove();
-
-            // Restore background
-            document.body.style.overflow = "auto";
-            document.body.style.backgroundColor = "initial";
-        });
-
-       
-        add_works_to_modale();
-
-       
-        appending_one_work();
+        toggleSubmitButtonState(photoForm);
     });
 }
 
+function createPhotoForm() {
+    const form = document.createElement('form');
+    form.id = 'photo_form';
+    form.enctype = 'multipart/form-data';
+    form.method = 'POST';
 
+    form.innerHTML = `
+        <div id="photo_preview">
+            <img id="photo_preview_img" src="./assets/icons/default-upload-img.svg">
+            <input type="file" id="photo_upload_input" name="image" accept="image/*">
+            <p id="photo_upload_requirements">jpg, png: 4mo max</p>
+        </div>
+        <label id="photo_form_work_title">Titre</label>
+        <input name="title" type="text" id="photo_form_work_title_input">
+        <label id="photo_form_category_list_title">Catégorie</label>
+        <select id="photo_form_category" name="category">
+            ${categories.map(category => `<option value="${category.id}">${category.name}</option>`).join('')}
+        </select>
+        <button id="modale_confirm_addPhoto_button" type="submit" disabled>Valider</button>
+    `;
+
+    return form;
+}
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const fileSize = file.size / (1024 * 1024);
+        if (fileSize > 4) {
+            alert('File size exceeds 4MB');
+            event.target.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('photo_preview_img').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+async function handleSubmit(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    try {
+        const response = await fetch('http://localhost:5678/api/works', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('loginToken')}`
+            }
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Network error: ${response.statusText} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        alert('Photo uploaded successfully!');
+        event.target.reset();
+        document.getElementById('photo_preview_img').src = './assets/icons/default-upload-img.svg';
+
+        allWorks.push(result);
+        updateGalleries(); // Update galleries with new photo
+
+        // Reset modale
+        const modaleGallery = document.getElementById('modale_gallery');
+        const modaleAddPhotoButton = document.getElementById('modale_addPhoto_button');
+        const modaleTitle = document.getElementById('modale_title');
+
+        if (modaleGallery) modaleGallery.style.display = "flex";
+        if (modaleAddPhotoButton) modaleAddPhotoButton.style.display = "flex";
+        if (modaleTitle) modaleTitle.innerText = 'Galerie photo';
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert(`Failed to upload photo: ${error.message}`);
+    }
+}
+
+function toggleSubmitButtonState(form) {
+    const submitButton = form.querySelector('#modale_confirm_addPhoto_button');
+    const imageInput = form.querySelector('#photo_upload_input');
+    const titleInput = form.querySelector('#photo_form_work_title_input');
+
+    function updateButtonState() {
+        submitButton.disabled = !(imageInput.files.length > 0 && titleInput.value.trim().length > 0);
+    }
+
+    imageInput.addEventListener('change', updateButtonState);
+    titleInput.addEventListener('input', updateButtonState);
+}
+
+function updateGalleries() {
+    addWorks(allWorks);
+    addWorksToModale();
+}
+
+function createModale() {
+    const modaleWrapper = document.createElement("div");
+    modaleWrapper.id = "modale_wrapper";
+    modaleWrapper.innerHTML = `
+        <div id="modale">
+            <h2 id="modale_title">Galerie photo</h2>
+            <div id="modale_gallery"></div>
+            <div id="modale_addPhoto">
+                <button id="modale_addPhoto_button">Ajouter une photo</button>
+            </div>
+        </div>
+        <div id="modale_close"><img src="./assets/icons/cross.svg"></div>
+    `;
+    document.body.appendChild(modaleWrapper);
+
+    const overlay = document.createElement("div");
+    overlay.className = "overlay";
+    document.body.appendChild(overlay);
+    document.body.style.overflow = "hidden";
+    document.body.style.backgroundColor = "rgba(0, 0, 0, 0.3)";
+
+    document.getElementById("modale_close").addEventListener("click", () => {
+        modaleWrapper.remove();
+        overlay.remove();
+        document.body.style.overflow = "auto";
+        document.body.style.backgroundColor = "initial";
+    });
+
+    addWorksToModale();
+    appendingOneWork();
+}

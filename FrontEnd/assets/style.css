@@ -326,6 +326,10 @@ nav li > a:visited {
 	flex-wrap: wrap;
 	padding-right: 101px;
 	padding-left: 101px;
+	/* temp fix */
+    overflow: auto;
+    height: 41%;
+    width: 71%;
 }
 
 #modale_gallery > figure {
@@ -357,6 +361,8 @@ nav li > a:visited {
 }
 
 #modale_addPhoto > #modale_addPhoto_button {
+	justify-content: center;
+	align-items: center;
 	font-family: 'Syne';
 	font-style: normal;
 	font-weight: 700;
