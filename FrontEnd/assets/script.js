@@ -1,10 +1,17 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const myToken = localStorage.getItem("loginToken");
     const isAdmin = myToken?.length > 0;
+    const blackBar = document.getElementById('blackBar');
+    const loginButton = document.getElementById('loginButton');
+    const header = document.getElementById('header');
 
     if (isAdmin) {
         await fetchWorks();
         setupModalButton();
+        blackBar.style.display = 'flex';
+        loginButton.innerHTML = 'logout';
+        loginButton.setAttribute('href','./index.html');
+        header.style.marginTop = '95px';
     }
 });
 
@@ -25,7 +32,7 @@ async function fetchWorks() {
         }
         allWorks = await response.json();
         updateGalleries();
-        categories = extractCategories(allWorks);
+        categories = extractCategories(allWorks).sort((a, b) => a.id - b.id);
         createFilters(categories);
     } catch (error) {
         console.error('Fetch error:', error);
@@ -165,7 +172,21 @@ function appendingOneWork() {
         photoForm.addEventListener('submit', handleSubmit);
 
         toggleSubmitButtonState(photoForm);
+
+        modaleReturnToGallery();
     });
+}
+
+function modaleReturnToGallery() {
+    const modaleReturnToGallery = document.getElementById('returnToGalleryButton');
+    const photoForm = document.getElementById('photo_form');
+    if (photoForm) modaleReturnToGallery.style.display = 'flex';
+    modaleReturnToGallery.addEventListener('click', () => {
+        document.getElementById('modale_title').innerText = 'Galerie photo';
+        photoForm.remove();
+        document.getElementById('modale_gallery').style.display = 'flex';
+        document.getElementById('modale_addPhoto_button').style.display = 'flex';
+    })
 }
 
 function createPhotoForm() {
@@ -278,6 +299,7 @@ function createModale() {
             </div>
         </div>
         <div id="modale_close"><img src="./assets/icons/cross.svg"></div>
+        <div id='returnToGalleryButton'><img src='./assets/icons/return.svg'></div>
     `;
     document.body.appendChild(modaleWrapper);
 

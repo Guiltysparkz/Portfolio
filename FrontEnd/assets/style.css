@@ -96,6 +96,10 @@ nav li {
 	font-size: 1.2em;
 }
 
+nav ul li a:hover {
+	color: #B1663C;
+}
+
 li:hover {
 	color: #B1663C;
 }
@@ -216,6 +220,7 @@ footer nav ul {
 	height: 37px;
 	min-width: 100px;
 	max-width: 198px;
+	padding: 4px;
 }
 
 .filtres > button > p {
@@ -415,13 +420,12 @@ nav li > a:visited {
 	z-index: 2;
 }
 
-#blackbar {
-	display: flex;
+#blackBar {
+	display: none;
 	justify-content: center;
 	align-items: center;
 	background-color: black;
 	height: 59px;
-	margin: 0px -37.8% 0px -37.8%;
 	font-family: 'Work Sans';
 	font-style: normal;
 	font-weight: 400;
@@ -429,9 +433,13 @@ nav li > a:visited {
 	line-height: 19px;
 	text-align: center;
 	color: #FFFFFF;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
 }
 
-#blackbar > img {
+#blackBar > img {
 	filter: invert(1);
 	padding-right: 11.42px;
 }
@@ -468,3 +476,20 @@ nav li > a:visited {
 	width: 50%;
 	height: 50%;
 }
+#photo_form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#photo_preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+#photo_upload_input {
+	height: 36px;
+	background: #CBD6DC;
+	border-radius: 50px;
+}
+
