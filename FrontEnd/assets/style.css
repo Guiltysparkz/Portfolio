@@ -302,7 +302,7 @@ nav li > a:visited {
 	position: absolute;
 	z-index: 3;
 	width: 630px;
-    height: 688px;
+    min-height: 688px;
 	background: #FFFFFF;
 	border-radius: 10px;
 	align-content: center;
@@ -320,21 +320,21 @@ nav li > a:visited {
 	text-align: center;
 	color: #000000;
 	padding-top: 60px;
-	padding-bottom: 46px;
+	padding-bottom: 36px;
 }
 
 #modale_gallery {
 	display: flex;
 	row-gap: 29px;
-	column-gap: 9px;
+	column-gap: 7.37px;
 	flex-direction: row;
 	flex-wrap: wrap;
-	padding-right: 101px;
-	padding-left: 101px;
+	margin-right: 101px;
+	margin-left: 101px;
 	/* temp fix */
-    overflow: auto;
-    height: 41%;
-    width: 71%;
+    width: 420px;
+	border-bottom: #B3B3B3 1px solid;
+	padding-bottom: 67.3px;
 }
 
 #modale_gallery > figure {
@@ -358,10 +358,10 @@ nav li > a:visited {
 
 #modale_addPhoto {
 	display: flex;
-	height: 119px;
+	height: 36px;
 	border-top: #000000;
 	border: 1px;
-	padding: 67.3px 105px 0px 105px;	
+	padding: 38px 198px 45px 195px;	
 	justify-content: center;
 }
 
@@ -473,23 +473,127 @@ nav li > a:visited {
 }
 
 #photo_preview_img {
-	width: 50%;
-	height: 50%;
+	height: 76px;
+    width: 76px;
+	padding-top: 22.5px;
+    padding-bottom: 12.88px;
 }
 #photo_form {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    margin-left: 105px;
 }
 #photo_preview {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+	margin-bottom: 30px;
 }
-#photo_upload_input {
+#custom_file_upload {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 173px;
 	height: 36px;
 	background: #CBD6DC;
 	border-radius: 50px;
+	color: #306685;
+}
+#photo_upload_requirements {
+	width: 94px;
+	height: 12px;
+	font-family: 'Work Sans';
+	font-style: normal;
+	font-weight: 400;
+	font-size: 10px;
+	line-height: 12px;
+	text-align: center;
+	color: #444444;
+	margin-top: 7px;
+    margin-bottom: 19px;
+}
+#returnToGalleryButton {
+	display: none;
+	position: absolute;
+	top: 26px;
+	left: 30px;
+}
+#photo_preview {
+	width: 420px;
+	height: 169px;
+	background: #E8F1F7;
+	border-radius: 3px;
+}
+#photo_form_work_title_input {
+	width: 420px;
+	height: 51px;
+	background: #FFFFFF;
+	box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.09);
+	border: none;
+	margin-top: 10px;
+	padding: 0 16px 0 16px;
+	box-sizing: border-box;
+}
+#photo_form_category {
+	width: 420px;
+	height: 51px;
+	background: #FFFFFF;
+	box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.09);
+	border: none;
+	font-family: 'Work Sans';
+	font-style: normal;
+	font-weight: 400;
+	font-size: 14px;
+	line-height: 16px;
+	color: #444444;
+	margin-top: 10px;
+	margin-bottom: 47px;
+	padding: 0 16px 0 16px;
 }
 
+#modale_confirm_addPhoto_button {
+	display: flex;
+	height: 36px;
+	border-top: #000000 solid 1px;
+	margin: 32px 93px 45px 90px;	
+	justify-content: center;
+	align-items: center;
+	font-family: 'Syne';
+	font-style: normal;
+	font-weight: 700;
+	font-size: 14px;
+	line-height: 17px;
+	text-align: center;
+	width: 237px;
+	color: white;
+	background: #1D6154;
+	border-radius: 60px;
+}
+
+#photo_form_work_title {
+	font-family: 'Work Sans';
+	font-style: normal;
+	font-weight: 500;
+	font-size: 14px;
+	line-height: 16px;
+	color: #3D3D3D;
+}
+#photo_form_category_list_title {
+	margin-top: 21px;
+	font-family: 'Work Sans';
+	font-style: normal;
+	font-weight: 500;
+	font-size: 14px;
+	line-height: 16px;
+	color: #3D3D3D;
+}
+
+input[type="file"] {
+    display: none;
+}
+#addPhotoWrapper {
+	display: flex;
+	border-top: #B3B3B3 solid 1px;
+	width: 420px;
+}

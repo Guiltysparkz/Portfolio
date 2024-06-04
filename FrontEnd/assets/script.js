@@ -6,17 +6,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     const header = document.getElementById('header');
 
     if (isAdmin) {
-        await fetchWorks();
-        setupModalButton();
-        blackBar.style.display = 'flex';
-        loginButton.innerHTML = 'logout';
-        loginButton.setAttribute('href','./index.html');
-        header.style.marginTop = '95px';
+        admin();
+    } else {
+        await fetchWorks();        
+        const modaleButton_img = document.getElementById('modale_button_img');
+        const modalButton = document.getElementById('modal_button');
+        modaleButton_img.style.display = 'none';
+        modalButton.style.display = 'none';
     }
 });
 
+async function admin() {
+    await fetchWorks();
+    setupModalButton();
+    blackBar.style.display = 'flex';
+    loginButton.innerHTML = 'logout';
+    loginButton.setAttribute('href','./index.html');
+    header.style.marginTop = '95px';
+    setupLogoutLink();
+}
+
+function setupLogoutLink() {
+    const loginButton = document.getElementById('loginButton');
+    const modaleButton_img = document.getElementById('modale_button_img');
+    const modalButton = document.getElementById('modal_button');
+    loginButton.addEventListener('click', () => {
+        localStorage.removeItem('loginToken');
+        localStorage.removeItem('userId');
+        modaleButton_img.style.display = 'none';
+        modalButton.style.display = 'none';
+    })
+}
+
 function setupModalButton() {
     const modalButton = document.getElementById('modal_button');
+    const modale_button_img = document.getElementById('modale_button_img');
+    modale_button_img.style.display = 'flex';
+    modalButton.style.display = 'flex';
     if (modalButton) {
         modalButton.addEventListener('click', createModale);
     } else {
@@ -152,6 +178,7 @@ function addWorksToModale() {
 }
 
 function appendingOneWork() {
+    const modale_addPhoto = document.getElementById('modale_addPhoto');
     const modaleAddPhotoButton = document.getElementById('modale_addPhoto_button');
     if (!modaleAddPhotoButton) return;
 
@@ -159,6 +186,7 @@ function appendingOneWork() {
         const modaleGallery = document.getElementById('modale_gallery');
         if (modaleGallery) modaleGallery.style.display = "none";
 
+        modale_addPhoto.style.display = "none";
         modaleAddPhotoButton.style.display = "none";
 
         const modaleTitle = document.getElementById('modale_title');
@@ -177,15 +205,21 @@ function appendingOneWork() {
     });
 }
 
+
 function modaleReturnToGallery() {
     const modaleReturnToGallery = document.getElementById('returnToGalleryButton');
     const photoForm = document.getElementById('photo_form');
+    const modale_addPhoto = document.getElementById('modale_addPhoto');
+    const modaleAddPhotoButton = document.getElementById('modale_addPhoto_button');
     if (photoForm) modaleReturnToGallery.style.display = 'flex';
     modaleReturnToGallery.addEventListener('click', () => {
         document.getElementById('modale_title').innerText = 'Galerie photo';
         photoForm.remove();
         document.getElementById('modale_gallery').style.display = 'flex';
         document.getElementById('modale_addPhoto_button').style.display = 'flex';
+        modaleReturnToGallery.style.display = 'none';
+        modaleAddPhotoButton.style.display = 'flex';
+        modale_addPhoto.style.display = 'flex';
     })
 }
 
@@ -199,6 +233,7 @@ function createPhotoForm() {
         <div id="photo_preview">
             <img id="photo_preview_img" src="./assets/icons/default-upload-img.svg">
             <input type="file" id="photo_upload_input" name="image" accept="image/*">
+            <label for="photo_upload_input" id="custom_file_upload">+ Ajouter photo</label>
             <p id="photo_upload_requirements">jpg, png: 4mo max</p>
         </div>
         <label id="photo_form_work_title">Titre</label>
@@ -207,14 +242,20 @@ function createPhotoForm() {
         <select id="photo_form_category" name="category">
             ${categories.map(category => `<option value="${category.id}">${category.name}</option>`).join('')}
         </select>
+        <div id='addPhotoWrapper'>
         <button id="modale_confirm_addPhoto_button" type="submit" disabled>Valider</button>
+        </div>
     `;
 
     return form;
 }
 
+
 function handleFileUpload(event) {
     const file = event.target.files[0];
+    const photo_upload_requirements = document.getElementById('photo_upload_requirements');
+    const custom_file_upload = document.getElementById('custom_file_upload');
+    const photo_preview_img = document.getElementById('photo_preview_img')
     if (file) {
         const fileSize = file.size / (1024 * 1024);
         if (fileSize > 4) {
@@ -228,8 +269,14 @@ function handleFileUpload(event) {
             document.getElementById('photo_preview_img').src = e.target.result;
         };
         reader.readAsDataURL(file);
+        photo_upload_requirements.style.display = 'none';
+        custom_file_upload.style.display = 'none';
+        photo_preview_img.style.height = '100%'
+        photo_preview_img.style.width = 'fit-content'
+        photo_preview_img.style.padding = '0'
     }
 }
+
 
 async function handleSubmit(event) {
     event.preventDefault();
@@ -259,10 +306,14 @@ async function handleSubmit(event) {
         const modaleGallery = document.getElementById('modale_gallery');
         const modaleAddPhotoButton = document.getElementById('modale_addPhoto_button');
         const modaleTitle = document.getElementById('modale_title');
+        const photo_form = document.getElementById('photo_form');
+        const modale_addPhoto = document.getElementById('modale_addPhoto');
 
         if (modaleGallery) modaleGallery.style.display = "flex";
         if (modaleAddPhotoButton) modaleAddPhotoButton.style.display = "flex";
         if (modaleTitle) modaleTitle.innerText = 'Galerie photo';
+        if (photo_form) photo_form.remove();
+        if (modaleGallery) modale_addPhoto.style.display = 'flex';
     } catch (error) {
         console.error('Upload error:', error);
         alert(`Failed to upload photo: ${error.message}`);
@@ -291,15 +342,14 @@ function createModale() {
     const modaleWrapper = document.createElement("div");
     modaleWrapper.id = "modale_wrapper";
     modaleWrapper.innerHTML = `
-        <div id="modale">
-            <h2 id="modale_title">Galerie photo</h2>
-            <div id="modale_gallery"></div>
-            <div id="modale_addPhoto">
-                <button id="modale_addPhoto_button">Ajouter une photo</button>
-            </div>
+        <h2 id="modale_title">Galerie photo</h2>
+        <div id="modale_gallery"></div>
+        <div id="modale_addPhoto">
+            <button id="modale_addPhoto_button">Ajouter une photo</button>
+        </div>
         </div>
         <div id="modale_close"><img src="./assets/icons/cross.svg"></div>
-        <div id='returnToGalleryButton'><img src='./assets/icons/return.svg'></div>
+        <div id='returnToGalleryButton'><img src='./assets/icons/return.svg'>
     `;
     document.body.appendChild(modaleWrapper);
 
