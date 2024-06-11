@@ -301,14 +301,14 @@ nav li > a:visited {
 	display: flex;
 	position: absolute;
 	z-index: 3;
-	width: 630px;
-    min-height: 688px;
 	background: #FFFFFF;
 	border-radius: 10px;
 	align-content: center;
-	top: 18%;
-    right: 25%;
 	flex-direction: column;
+	width: 630px;
+    height: 670px;
+    left: 37%;
+    top: 27%;
 }
 
 #modale_title {
@@ -326,16 +326,26 @@ nav li > a:visited {
 #modale_gallery {
 	display: flex;
 	row-gap: 29px;
-	column-gap: 7.37px;
+	column-gap: 9px;
 	flex-direction: row;
 	flex-wrap: wrap;
 	margin-right: 101px;
 	margin-left: 101px;
-	/* temp fix */
-    width: 420px;
 	border-bottom: #B3B3B3 1px solid;
 	padding-bottom: 67.3px;
 }
+.scroll {
+	margin: 4px, 4px;
+	height: 330px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	text-align: justify;
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar {
+	display: none;
+  }
 
 #modale_gallery > figure {
 	display: block;

@@ -1,14 +1,12 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const myToken = localStorage.getItem("loginToken");
     const isAdmin = myToken?.length > 0;
-    const blackBar = document.getElementById('blackBar');
-    const loginButton = document.getElementById('loginButton');
-    const header = document.getElementById('header');
+
+    await fetchWorks();        
 
     if (isAdmin) {
         admin();
     } else {
-        await fetchWorks();        
         const modaleButton_img = document.getElementById('modale_button_img');
         const modalButton = document.getElementById('modal_button');
         modaleButton_img.style.display = 'none';
@@ -17,7 +15,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function admin() {
-    await fetchWorks();
+
+    const blackBar = document.getElementById('blackBar');
+    const loginButton = document.getElementById('loginButton');
+    const header = document.getElementById('header');
+
     setupModalButton();
     blackBar.style.display = 'flex';
     loginButton.innerHTML = 'logout';
@@ -58,23 +60,26 @@ async function fetchWorks() {
         }
         allWorks = await response.json();
         updateGalleries();
-        categories = extractCategories(allWorks).sort((a, b) => a.id - b.id);
+        categories = await getCategories();
         createFilters(categories);
     } catch (error) {
         console.error('Fetch error:', error);
     }
 }
 
-function extractCategories(works) {
-    const categorySet = new Set();
-    return works.reduce((acc, work) => {
-        const { id, name } = work.category;
-        if (!categorySet.has(id)) {
-            acc.push({ id, name });
-            categorySet.add(id);
-        }
-        return acc;
-    }, []);
+async function getCategories() {
+
+  try {
+    const response = await fetch("http://localhost:5678/api/categories");
+    if (!response.ok) {
+        throw new Error("Network error: " + response.statusText);
+    }
+    return await response.json();
+  
+} catch (error) {
+    console.error('Fetch error:', error);
+    return []
+}
 }
 
 function addWorks(works) {
@@ -308,12 +313,14 @@ async function handleSubmit(event) {
         const modaleTitle = document.getElementById('modale_title');
         const photo_form = document.getElementById('photo_form');
         const modale_addPhoto = document.getElementById('modale_addPhoto');
+        const returnToGalleryButton = document.getElementById('returnToGalleryButton');
 
         if (modaleGallery) modaleGallery.style.display = "flex";
         if (modaleAddPhotoButton) modaleAddPhotoButton.style.display = "flex";
         if (modaleTitle) modaleTitle.innerText = 'Galerie photo';
         if (photo_form) photo_form.remove();
         if (modaleGallery) modale_addPhoto.style.display = 'flex';
+        if (returnToGalleryButton) returnToGalleryButton.style.display = 'none';
     } catch (error) {
         console.error('Upload error:', error);
         alert(`Failed to upload photo: ${error.message}`);
@@ -343,7 +350,7 @@ function createModale() {
     modaleWrapper.id = "modale_wrapper";
     modaleWrapper.innerHTML = `
         <h2 id="modale_title">Galerie photo</h2>
-        <div id="modale_gallery"></div>
+        <div class="scroll" id="modale_gallery"></div>
         <div id="modale_addPhoto">
             <button id="modale_addPhoto_button">Ajouter une photo</button>
         </div>
