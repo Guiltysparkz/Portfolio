@@ -1,3 +1,5 @@
+//**************admin management start**************//
+
 document.addEventListener('DOMContentLoaded', async () => {
     const myToken = localStorage.getItem("loginToken");
     const isAdmin = myToken?.length > 0;
@@ -52,6 +54,10 @@ function setupModalButton() {
     }
 }
 
+//**************admin management end**************//
+
+//**************gallery**************//
+
 async function fetchWorks() {
     try {
         const response = await fetch("http://localhost:5678/api/works");
@@ -67,20 +73,11 @@ async function fetchWorks() {
     }
 }
 
-async function getCategories() {
+function updateGalleries() {
+    addWorks(allWorks);
+    addWorksToModale(allWorks);
+}
 
-  try {
-    const response = await fetch("http://localhost:5678/api/categories");
-    if (!response.ok) {
-        throw new Error("Network error: " + response.statusText);
-    }
-    return await response.json();
-  
-} catch (error) {
-    console.error('Fetch error:', error);
-    return []
-}
-}
 
 function addWorks(works) {
     const gallery = document.getElementById("gallery");
@@ -98,6 +95,22 @@ function addWorks(works) {
         gallery.appendChild(figure);
     });
 }
+
+async function getCategories() {
+
+    try {
+      const response = await fetch("http://localhost:5678/api/categories");
+      if (!response.ok) {
+          throw new Error("Network error: " + response.statusText);
+      }
+      return await response.json();
+    
+  } catch (error) {
+      console.error('Fetch error:', error);
+      return []
+  }
+  }
+  
 
 function createFilters(categories) {
     const filters = document.getElementById("filtres");
@@ -144,13 +157,51 @@ function addFilterListener() {
     });
 }
 
-function addWorksToModale() {
+//**************gallery end****************//
+
+//**************modale start**************//
+
+
+function createModale() {
+    const modaleWrapper = document.createElement("div");
+    modaleWrapper.id = "modale_wrapper";
+    modaleWrapper.innerHTML = `
+        <h2 id="modale_title">Galerie photo</h2>
+        <div class="scroll" id="modale_gallery"></div>
+        <div id="modale_addPhoto">
+            <button id="modale_addPhoto_button">Ajouter une photo</button>
+        </div>
+        </div>
+        <div id="modale_close"><img src="./assets/icons/cross.svg"></div>
+        <div id='returnToGalleryButton'><img src='./assets/icons/return.svg'>
+    `;
+    document.body.appendChild(modaleWrapper);
+
+    const overlay = document.createElement("div");
+    overlay.className = "overlay";
+    document.body.appendChild(overlay);
+    document.body.style.overflow = "hidden";
+    document.body.style.backgroundColor = "rgba(0, 0, 0, 0.3)";
+
+    document.getElementById("modale_close").addEventListener("click", () => {
+        modaleWrapper.remove();
+        overlay.remove();
+        document.body.style.overflow = "auto";
+        document.body.style.backgroundColor = "initial";
+    });
+
+    addWorksToModale(allWorks);
+    appendingOneWork();
+}
+
+
+function addWorksToModale(works) {
     const modaleGallery = document.getElementById("modale_gallery");
     if (!modaleGallery) return;
 
     modaleGallery.innerHTML = ''; // Clear existing works in modaleGallery
 
-    allWorks.forEach((work) => {
+    works.forEach((work) => {
         const figure = document.createElement("figure");
         figure.innerHTML = `
             <img src="${work.imageUrl}" id="${work.id}">
@@ -211,23 +262,6 @@ function appendingOneWork() {
 }
 
 
-function modaleReturnToGallery() {
-    const modaleReturnToGallery = document.getElementById('returnToGalleryButton');
-    const photoForm = document.getElementById('photo_form');
-    const modale_addPhoto = document.getElementById('modale_addPhoto');
-    const modaleAddPhotoButton = document.getElementById('modale_addPhoto_button');
-    if (photoForm) modaleReturnToGallery.style.display = 'flex';
-    modaleReturnToGallery.addEventListener('click', () => {
-        document.getElementById('modale_title').innerText = 'Galerie photo';
-        photoForm.remove();
-        document.getElementById('modale_gallery').style.display = 'flex';
-        document.getElementById('modale_addPhoto_button').style.display = 'flex';
-        modaleReturnToGallery.style.display = 'none';
-        modaleAddPhotoButton.style.display = 'flex';
-        modale_addPhoto.style.display = 'flex';
-    })
-}
-
 function createPhotoForm() {
     const form = document.createElement('form');
     form.id = 'photo_form';
@@ -255,7 +289,7 @@ function createPhotoForm() {
     return form;
 }
 
-
+// ajout photo
 function handleFileUpload(event) {
     const file = event.target.files[0];
     const photo_upload_requirements = document.getElementById('photo_upload_requirements');
@@ -334,45 +368,30 @@ function toggleSubmitButtonState(form) {
 
     function updateButtonState() {
         submitButton.disabled = !(imageInput.files.length > 0 && titleInput.value.trim().length > 0);
+        submitButton.style.backgroundColor = '#1D6154';
     }
 
     imageInput.addEventListener('change', updateButtonState);
     titleInput.addEventListener('input', updateButtonState);
 }
 
-function updateGalleries() {
-    addWorks(allWorks);
-    addWorksToModale();
+
+function modaleReturnToGallery() {
+    const modaleReturnToGallery = document.getElementById('returnToGalleryButton');
+    const photoForm = document.getElementById('photo_form');
+    const modale_addPhoto = document.getElementById('modale_addPhoto');
+    const modaleAddPhotoButton = document.getElementById('modale_addPhoto_button');
+    if (photoForm) modaleReturnToGallery.style.display = 'flex';
+    modaleReturnToGallery.addEventListener('click', () => {
+        document.getElementById('modale_title').innerText = 'Galerie photo';
+        photoForm.remove();
+        document.getElementById('modale_gallery').style.display = 'flex';
+        document.getElementById('modale_addPhoto_button').style.display = 'flex';
+        modaleReturnToGallery.style.display = 'none';
+        modaleAddPhotoButton.style.display = 'flex';
+        modale_addPhoto.style.display = 'flex';
+    })
 }
 
-function createModale() {
-    const modaleWrapper = document.createElement("div");
-    modaleWrapper.id = "modale_wrapper";
-    modaleWrapper.innerHTML = `
-        <h2 id="modale_title">Galerie photo</h2>
-        <div class="scroll" id="modale_gallery"></div>
-        <div id="modale_addPhoto">
-            <button id="modale_addPhoto_button">Ajouter une photo</button>
-        </div>
-        </div>
-        <div id="modale_close"><img src="./assets/icons/cross.svg"></div>
-        <div id='returnToGalleryButton'><img src='./assets/icons/return.svg'>
-    `;
-    document.body.appendChild(modaleWrapper);
 
-    const overlay = document.createElement("div");
-    overlay.className = "overlay";
-    document.body.appendChild(overlay);
-    document.body.style.overflow = "hidden";
-    document.body.style.backgroundColor = "rgba(0, 0, 0, 0.3)";
-
-    document.getElementById("modale_close").addEventListener("click", () => {
-        modaleWrapper.remove();
-        overlay.remove();
-        document.body.style.overflow = "auto";
-        document.body.style.backgroundColor = "initial";
-    });
-
-    addWorksToModale();
-    appendingOneWork();
-}
+//modale end//

@@ -565,7 +565,6 @@ nav li > a:visited {
 #modale_confirm_addPhoto_button {
 	display: flex;
 	height: 36px;
-	border-top: #000000 solid 1px;
 	margin: 32px 93px 45px 90px;	
 	justify-content: center;
 	align-items: center;
@@ -577,8 +576,9 @@ nav li > a:visited {
 	text-align: center;
 	width: 237px;
 	color: white;
-	background: #1D6154;
+	background: #A7A7A7;
 	border-radius: 60px;
+	border: none;
 }
 
 #photo_form_work_title {
