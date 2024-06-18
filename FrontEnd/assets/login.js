@@ -18,12 +18,8 @@ try {
         })
     });
     if (!response.ok) {
-        if (response.status === 401) {
             // Unauthorized error, wrong credentials
             window.alert("Email ou mot de passe invalide.");
-        } else {
-            throw new Error(`Network error ${response.statusText}`);
-        }
     }
     // Collect answer from api (token) and on success send to index.html
     const data = await response.json();
